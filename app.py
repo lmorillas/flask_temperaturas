@@ -1,12 +1,13 @@
 from flask import Flask, request,url_for,render_template,abort
 from lxml import etree
+import requests
 import os
 app = Flask(__name__)	
 
 @app.route('/',methods=["GET","POST"])
 def inicio():
 	ROOT_PATH = os.path.abspath(os.path.dirname(__file__))
-	file_path = ROOT_PATH + "/" + "sevilla.xml"
+	file_path = f'{ROOT_PATH}/zaragoza.xml'
 	doc=etree.parse(file_path)
 	municipios=doc.findall("municipio")
 	return render_template("inicio.html",municipios=municipios)
@@ -14,7 +15,8 @@ def inicio():
 @app.route('/<code>')
 def temperatura(code):
 	try:
-		doc=etree.parse("http://www.aemet.es/xml/municipios/localidad_"+code+".xml")
+		respuesta = requests.get(f'https://www.aemet.es/xml/municipios/localidad_{code}.xml')
+		doc = etree.fromstring(respuesta.content)
 	except:
 		abort(404)
 	name=doc.find("nombre").text
